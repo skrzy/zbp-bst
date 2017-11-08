@@ -10,22 +10,26 @@ using namespace std;
 template <typename T>
 class binary_search_tree {
 private:
+    struct node;
+
+    typedef shared_ptr<node> node_ptr;
+
     struct node {
         T value;
-        shared_ptr<node> parent;
-        shared_ptr<node> left_child;
-        shared_ptr<node> right_child;
+        node_ptr parent;
+        node_ptr left_child;
+        node_ptr right_child;
 
         explicit node(T value);
         void print(int level);
     };
 
-    shared_ptr<node> root = nullptr;
+    node_ptr root = nullptr;
 
-    shared_ptr<node> find_successor(shared_ptr<node> n);
-    shared_ptr<node> find_min(shared_ptr<node> root);
-    shared_ptr<node> find_max(shared_ptr<node> root);
-    shared_ptr<node> find_node(T element);
+    node_ptr find_successor(node_ptr n);
+    node_ptr find_min(node_ptr root);
+    node_ptr find_max(node_ptr root);
+    node_ptr find_node(T element);
 
 public:
     bool insert(T inserted_value);
@@ -40,8 +44,8 @@ public:
 template <typename T>
 bool binary_search_tree<T>::insert(T inserted_value) {
 
-    shared_ptr<node> parent_node = nullptr;
-    shared_ptr<node> current_node = root;
+    node_ptr parent_node = nullptr;
+    node_ptr current_node = root;
 
     while (current_node != nullptr) {
         parent_node = current_node;
@@ -54,7 +58,7 @@ bool binary_search_tree<T>::insert(T inserted_value) {
         }
     }
 
-    shared_ptr<node> new_node = make_shared<node>(inserted_value);
+    node_ptr new_node = make_shared<node>(inserted_value);
     new_node->parent = parent_node;
 
     if (parent_node == nullptr) {
@@ -76,7 +80,7 @@ bool binary_search_tree<T>::find(T element) {
 }
 
 template <typename T>
-shared_ptr<typename binary_search_tree<T>::node> binary_search_tree<T>::find_node(T element) {
+typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_node(T element) {
     auto current_node = root;
 
     while (current_node != nullptr && element != current_node->value) {
@@ -102,14 +106,14 @@ bool binary_search_tree<T>::erase(T element) {
         return false;
     }
 
-    shared_ptr<node> y;
+    node_ptr y;
     if (node_to_remove->left_child == nullptr || node_to_remove->right_child == nullptr) {
         y = node_to_remove;
     } else {
         y = find_successor(node_to_remove);
     }
 
-    shared_ptr<node> x;
+    node_ptr x;
     if (y->left_child != nullptr) {
         x = y->left_child;
     } else {
@@ -137,7 +141,7 @@ bool binary_search_tree<T>::erase(T element) {
 }
 
 template <typename T>
-shared_ptr<typename binary_search_tree<T>::node> binary_search_tree<T>::find_successor(shared_ptr<node> n) {
+typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_successor(node_ptr n) {
     if (n->right_child != nullptr) {
         return find_min(n->right_child);
     }
@@ -164,7 +168,7 @@ T& binary_search_tree<T>::max() {
 }
 
 template <typename T>
-shared_ptr<typename binary_search_tree<T>::node> binary_search_tree<T>::find_min(shared_ptr<node> root) {
+typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_min(node_ptr root) {
     auto current_node = root;
     while (current_node->left_child != nullptr) {
         current_node = current_node->left_child;
@@ -173,7 +177,7 @@ shared_ptr<typename binary_search_tree<T>::node> binary_search_tree<T>::find_min
 }
 
 template <typename T>
-shared_ptr<typename binary_search_tree<T>::node> binary_search_tree<T>::find_max(shared_ptr<node> root) {
+typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_max(node_ptr root) {
     auto current_node = root;
     while (current_node->right_child != nullptr) {
         current_node = current_node->right_child;
