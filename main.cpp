@@ -1,7 +1,8 @@
+#include <set>
 #include "binary_search_tree.h"
 
 int main() {
-    binary_search_tree<int> bst;
+    binary_search_tree<int, greater<>> bst;
     bst.insert(12);
     bst.insert(6);
     bst.insert(1);
@@ -16,5 +17,6 @@ int main() {
     cout << "find 55: " << bst.find(55) << endl;
     bst.erase(12);
     bst.print();
+
     return 0;
 }

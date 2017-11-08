@@ -7,7 +7,7 @@
 
 using namespace std;
 
-template <typename T>
+template <typename T, typename Compare = less<T>>
 class binary_search_tree {
 private:
     struct node;
@@ -24,6 +24,8 @@ private:
         void print(int level);
     };
 
+    const Compare& comparator;
+
     node_ptr root = nullptr;
 
     node_ptr find_successor(node_ptr n);
@@ -31,7 +33,11 @@ private:
     node_ptr find_max(node_ptr root);
     node_ptr find_node(T element);
 
+    bool equals(T a, T b);
+
 public:
+    explicit binary_search_tree(const Compare& comparator = Compare());
+
     bool insert(T inserted_value);
     bool find(T element);
     bool erase(T element);
@@ -41,20 +47,20 @@ public:
 };
 
 
-template <typename T>
-bool binary_search_tree<T>::insert(T inserted_value) {
+template <typename T, typename Compare>
+bool binary_search_tree<T, Compare>::insert(T inserted_value) {
 
     node_ptr parent_node = nullptr;
     node_ptr current_node = root;
 
     while (current_node != nullptr) {
         parent_node = current_node;
-        if (inserted_value < current_node->value) {
+        if (comparator(inserted_value, current_node->value)) {
             current_node = current_node->left_child;
-        } else if(current_node-> value < inserted_value) {
+        } else if (comparator(current_node-> value, inserted_value)) {
             current_node = current_node->right_child;
         } else {
-            return false;   //value already in tree
+            return false;   // already in tree
         }
     }
 
@@ -64,7 +70,7 @@ bool binary_search_tree<T>::insert(T inserted_value) {
     if (parent_node == nullptr) {
         root = new_node;
     } else {
-        if (new_node->value < parent_node->value) {
+        if (comparator(new_node->value, parent_node->value)) {
             parent_node->left_child = new_node;
         } else {
             parent_node->right_child = new_node;
@@ -74,32 +80,32 @@ bool binary_search_tree<T>::insert(T inserted_value) {
     return true;
 }
 
-template <typename T>
-bool binary_search_tree<T>::find(T element) {
+template <typename T, typename Compare>
+bool binary_search_tree<T, Compare>::find(T element) {
     return find_node(element) != nullptr;
 }
 
-template <typename T>
-typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_node(T element) {
+template <typename T, typename Compare>
+typename binary_search_tree<T, Compare>::node_ptr binary_search_tree<T, Compare>::find_node(T element) {
     auto current_node = root;
 
-    while (current_node != nullptr && element != current_node->value) {
-        if (element < current_node->value) {
+    while (current_node != nullptr && !equals(element, current_node->value)) {
+        if (comparator(element, current_node->value)) {
             current_node = current_node->left_child;
         } else {
             current_node = current_node->right_child;
         }
     }
 
-    if (current_node != nullptr && current_node->value != element) {
+    if (current_node != nullptr && !equals(current_node->value, element)) {
         current_node = nullptr;
     }
 
     return current_node;
 }
 
-template <typename T>
-bool binary_search_tree<T>::erase(T element) {
+template <typename T, typename Compare>
+bool binary_search_tree<T, Compare>::erase(T element) {
     auto node_to_remove = find_node(element);
 
     if (node_to_remove == nullptr) {
@@ -140,8 +146,8 @@ bool binary_search_tree<T>::erase(T element) {
     return true;
 }
 
-template <typename T>
-typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_successor(node_ptr n) {
+template <typename T, typename Compare>
+typename binary_search_tree<T, Compare>::node_ptr binary_search_tree<T, Compare>::find_successor(node_ptr n) {
     if (n->right_child != nullptr) {
         return find_min(n->right_child);
     }
@@ -149,7 +155,7 @@ typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_successor(n
     auto current_node = n;
     auto parent_node = n->parent;
 
-    while (current_node != nullptr && current_node->value == parent_node->value) {
+    while (current_node != nullptr && equals(current_node->value, parent_node->value)) {
         current_node = parent_node;
         parent_node = parent_node->parent;
     }
@@ -157,18 +163,18 @@ typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_successor(n
     return parent_node;
 }
 
-template <typename T>
-T& binary_search_tree<T>::min() {
+template <typename T, typename Compare>
+T& binary_search_tree<T, Compare>::min() {
     return find_min(root);
 }
 
-template <typename T>
-T& binary_search_tree<T>::max() {
+template <typename T, typename Compare>
+T& binary_search_tree<T, Compare>::max() {
     return find_max(root);
 }
 
-template <typename T>
-typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_min(node_ptr root) {
+template <typename T, typename Compare>
+typename binary_search_tree<T, Compare>::node_ptr binary_search_tree<T, Compare>::find_min(node_ptr root) {
     auto current_node = root;
     while (current_node->left_child != nullptr) {
         current_node = current_node->left_child;
@@ -176,8 +182,8 @@ typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_min(node_pt
     return current_node;
 }
 
-template <typename T>
-typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_max(node_ptr root) {
+template <typename T, typename Compare>
+typename binary_search_tree<T, Compare>::node_ptr binary_search_tree<T, Compare>::find_max(node_ptr root) {
     auto current_node = root;
     while (current_node->right_child != nullptr) {
         current_node = current_node->right_child;
@@ -185,21 +191,29 @@ typename binary_search_tree<T>::node_ptr binary_search_tree<T>::find_max(node_pt
     return current_node;
 }
 
-template <typename T>
-binary_search_tree<T>::node::node(T value) : value(value) {}
+template <typename T, typename Compare>
+binary_search_tree<T, Compare>::node::node(T value) : value(value) {}
 
-template <typename T>
-void binary_search_tree<T>::print() {
+template <typename T, typename Compare>
+void binary_search_tree<T, Compare>::print() {
     root->print(0);
     cout << endl;
 }
+template <typename T, typename Compare>
+binary_search_tree<T, Compare>::binary_search_tree(const Compare& comparator) : comparator(comparator) {}
 
-template <typename T>
-void binary_search_tree<T>::node::print(int level) {
+template <typename T, typename Compare>
+void binary_search_tree<T, Compare>::node::print(int level) {
     cout << "(" << value << "-L" << level << ") -> (";
     if (left_child != nullptr) left_child->print(level + 1);
     if (right_child != nullptr) right_child->print(level + 1);
     cout << ")";
 
 }
+
+template <typename T, typename Compare>
+bool binary_search_tree<T, Compare>::equals(T a, T b) {
+    return !comparator(a, b) && !comparator(b, a);
+}
+
 #endif //ZBP_BST_BINARYSEARCHTREE_H
