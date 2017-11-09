@@ -20,29 +20,39 @@ private:
         node_ptr left_child;
         node_ptr right_child;
 
-        explicit node(T value);
+        node(T value);
         void print(int level);
+
+//        ~node() {
+//            cout << "node destructor" << endl;
+//        }
     };
 
     const Compare& comparator;
 
     node_ptr root = nullptr;
+    T end = T();
+    T& end_ref = end;
 
     node_ptr find_successor(node_ptr n);
-    node_ptr find_min(node_ptr root);
-    node_ptr find_max(node_ptr root);
+    node_ptr find_min(node_ptr local_root);
+    node_ptr find_max(node_ptr local_root);
     node_ptr find_node(T element);
 
     bool equals(T a, T b);
 
+    void remove_parent_ptrs(node_ptr n);
+
 public:
-    explicit binary_search_tree(const Compare& comparator = Compare());
+    binary_search_tree(const Compare& comparator = Compare());
+    ~binary_search_tree();
 
     bool insert(T inserted_value);
     bool find(T element);
     bool erase(T element);
     T& min();
     T& max();
+    bool empty();
     void print();
 };
 
@@ -165,17 +175,17 @@ typename binary_search_tree<T, Compare>::node_ptr binary_search_tree<T, Compare>
 
 template <typename T, typename Compare>
 T& binary_search_tree<T, Compare>::min() {
-    return find_min(root);
+    return root != nullptr ? find_min(root)->value : end_ref;
 }
 
 template <typename T, typename Compare>
 T& binary_search_tree<T, Compare>::max() {
-    return find_max(root);
+    return root != nullptr ? find_max(root)->value : end_ref;
 }
 
 template <typename T, typename Compare>
-typename binary_search_tree<T, Compare>::node_ptr binary_search_tree<T, Compare>::find_min(node_ptr root) {
-    auto current_node = root;
+typename binary_search_tree<T, Compare>::node_ptr binary_search_tree<T, Compare>::find_min(node_ptr local_root) {
+    auto current_node = local_root;
     while (current_node->left_child != nullptr) {
         current_node = current_node->left_child;
     }
@@ -183,8 +193,8 @@ typename binary_search_tree<T, Compare>::node_ptr binary_search_tree<T, Compare>
 }
 
 template <typename T, typename Compare>
-typename binary_search_tree<T, Compare>::node_ptr binary_search_tree<T, Compare>::find_max(node_ptr root) {
-    auto current_node = root;
+typename binary_search_tree<T, Compare>::node_ptr binary_search_tree<T, Compare>::find_max(node_ptr local_root) {
+    auto current_node = local_root;
     while (current_node->right_child != nullptr) {
         current_node = current_node->right_child;
     }
@@ -192,7 +202,9 @@ typename binary_search_tree<T, Compare>::node_ptr binary_search_tree<T, Compare>
 }
 
 template <typename T, typename Compare>
-binary_search_tree<T, Compare>::node::node(T value) : value(value) {}
+binary_search_tree<T, Compare>::node::node(T value) : value(value) {
+//    cout << "node constructor" << endl;
+}
 
 template <typename T, typename Compare>
 void binary_search_tree<T, Compare>::print() {
@@ -210,10 +222,35 @@ void binary_search_tree<T, Compare>::node::print(int level) {
     cout << ")";
 
 }
+template <typename T, typename Compare>
+binary_search_tree<T, Compare>::~binary_search_tree() {
+    remove_parent_ptrs(root);
+}
+
+template <typename T, typename Compare>
+void binary_search_tree<T, Compare>::remove_parent_ptrs(node_ptr n) {
+    if (n == nullptr)
+        return;
+
+    n->parent = nullptr;
+
+    if (n->left_child != nullptr) {
+        remove_parent_ptrs(n->left_child);
+    }
+
+    if (n->right_child != nullptr) {
+        remove_parent_ptrs(n->right_child);
+    }
+}
 
 template <typename T, typename Compare>
 bool binary_search_tree<T, Compare>::equals(T a, T b) {
     return !comparator(a, b) && !comparator(b, a);
+}
+
+template <typename T, typename Compare>
+bool binary_search_tree<T, Compare>::empty() {
+    return root == nullptr;
 }
 
 #endif //ZBP_BST_BINARYSEARCHTREE_H
