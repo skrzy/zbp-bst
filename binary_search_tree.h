@@ -74,7 +74,12 @@ bool binary_search_tree<T, Compare>::insert(T inserted_value) {
         }
     }
 
+//    node_ptr new_node = shared_ptr<node>(new node(inserted_value), [](node* n){
+//        cout << "ptr deleted"<< endl;
+//        delete n;
+//    });
     node_ptr new_node = make_shared<node>(inserted_value);
+
     new_node->parent = parent_node;
 
     if (parent_node == nullptr) {

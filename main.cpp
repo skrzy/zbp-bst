@@ -50,10 +50,6 @@ void testGreaterPredicate() {
     assert(bst.erase(13545));
     assert(bst.min() == test(6654));
     assert(bst.max() == test(-9));
-
-    bool result = bst.erase(test(12));
-
-    cout << "result: " << result << endl;
 }
 
 void testFunctionPointerPredicate() {
@@ -99,8 +95,14 @@ void testMemory() {
 }
 
 int main() {
+    cout << "testFunctionPointerPredicate start" << endl;
     testFunctionPointerPredicate();
-//    testMemory();
+    cout << "testFunctionPointerPredicate end" << endl;
+
+    cout << "testGreaterPredicate start" << endl;
     testGreaterPredicate();
+    cout << "testGreaterPredicate end" << endl;
+
+//    testMemory();
     return 0;
 }
